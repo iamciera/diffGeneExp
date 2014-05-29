@@ -1,0 +1,8 @@
+library(rmarkdown)
+render("tf2cmbr_wtcmbr.Rmd", "pdf_document")
+render("wtambr_wtaother.Rmd", "pdf_document")
+render("wtambr_wtbmbr.Rmd", "pdf_document")
+render("wtambr_wtcmbr.Rmd", "pdf_document")
+render("wtbmbr_wtbother.attempt2.Rmd", "pdf_document")
+render("wtbmbr_wtcmbr.Rmd", "pdf_document")
+render("wtcmbr_wtcother.Rmd", "pdf_document")

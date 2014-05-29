@@ -1,0 +1,168 @@
+Filtering and normalization
+--------
+
+##Attempt 1
+
+```{r}
+library(limma)
+library(edgeR)
+library(ggplot2)
+```
+
+
+d[complete.cases(d),]
+
+d <- dist(raw.data)
+mds <- cmdscale(d)
+
+?dist
+read in data
+
+```{r}
+raw.data <- read.delim("sam2countsResults.tsv",row.names=1)
+```
+
+
+Part 1- Transform Data and visualize distribution 
+=================================================
+
+What is going on here?  I know I am tansforming the data to log2, but what does the boxplot mean exactly?
+```{r}
+Normexplog <- log(raw.data, 2)  
+boxplot(Normexplog) #what is this telling me exactly?
+```
+
+
+Part 2 -  I have no idea why I am getting the length here. 
+===========================================================
+
+At least I am getting the length here.  Am I just getting it to see how many rows I am loosing do to subsetting?
+```{r}
+
+length(raw.data$tf2ambr1) # not understanding why I am getting the length here? 
+sub <- subset(raw.data,rowSums(raw.data) > 0) #only include genes with counts above 40 across all samples.  Why?
+length(sub$tf2ambr1) 
+```
+Whatever it is I lost ALOT of rows due to subsetting.  I am going to continue on without using the subsetting because so many rows were omitted. 
+
+Part 3 - Normalization
+======================
+
+I am going to go ahead with the raw data. Which apparently I can't do because of the next part.
+
+DGE list gets the data in order for edgeR.  
+```{r}
+y <- DGEList(counts=raw.data)
+```
+
+Calculate Normalization Factors to scale the raw library sizes. Default normalization is TMM. This can not be used with zero values. 
+
+```{r}
+y <- calcNormFactors(raw.data)
+y$pseudo<- equalizeLibSizes(y)
+write.csv (y$pseudo$pseudo,"LCM.all.transcripts.norm.40.csv") 
+```
+
+read in norm data
+```{r}
+data <- read.csv("LCM.all.transcripts.norm.40.csv", row.names=1)
+dim(data)
+```
+
+#Boxplot
+Normexplog<- log(data,2)  
+pdf("boxplot.norm.40.all.pdf")
+boxplot (Normexplog)
+dev.off()
+
+MDS using dist and cmdscale
+============================
+
+First we need to do multidemensional scaling on the data. 
+
+```{r}
+m <- cmdscale(dist(scale(t(data))))
+colnames(m) <- c("x", "y")
+m <-as.data.frame(m)
+```
+
+###Getting the data in order for graphing. 
+Now we add a column that specifies which library belongs to which sample. 
+
+```{r}
+m$sample <- c(
+  rep("tf2ambr", 4), 
+  rep("tf2aother", 4), 
+  rep("tf2bmbr", 3), 
+  rep("tf2bother", 5), 
+  rep("tf2cmbr", 4),
+  rep("tf2cother", 4),
+  rep("wtambr", 3),
+  rep("wtaother", 4),
+  rep("wtbmbr", 4),
+  rep("wtbother", 4),
+  rep("wtcmbr", 6),
+  rep("wtcother", 3)
+)
+```
+
+Also add a column that defines the genotype of the sample
+```{r}
+m$genotype <- c(rep("tf2", 24), rep("wt", 24))
+```  
+
+And a column that specifies the region samples regardless of genoytpe.
+```{r}
+m$sampleSection <- c(
+  rep("ambr", 4), 
+  rep("aother", 4), 
+  rep("bmbr", 3), 
+  rep("bother", 5), 
+  rep("cmbr", 4),
+  rep("cother", 4),
+  rep("ambr", 3),
+  rep("aother", 4),
+  rep("bmbr", 4),
+  rep("bother", 4),
+  rep("cmbr", 6),
+  rep("cother", 3)
+)
+```
+
+Subsetting
+=========
+
+Subset according to genotype
+
+```{r}
+wildtype <- subset(m, genotype == "wt" )
+tf2 <- subset(m, genotype == "tf2")
+```
+
+Subset only C region
+```{r}
+cRegion <- subset(m, sampleSection == "cmbr")
+```
+###MDS by sample section regardless of genotype
+```{r}
+ggplot(m, aes(x,y,colour = sampleSection))+geom_point(size=5)+theme_bw()
+```
+
+###MDS colored by genoype
+```{r}
+ggplot(m, aes(x,y,colour = genotype))+geom_point(size=5)+theme_bw()
+```
+
+###Looking at MDS according to which section in wildtype
+```{r}
+ggplot(wildtype, aes(x,y,colour = sampleSection))+geom_point(size=5)+theme_bw()
+```
+
+###MDS C region 
+```{r}
+ggplot(cRegion, aes(x,y,colour = genotype))+geom_point(size=5)+theme_bw()
+```
+###Looking at MDS according to which section in tf2
+```{r}
+ggplot(tf2, aes(x,y,colour = sampleSection))+geom_point(size=5)+theme_bw()
+```
