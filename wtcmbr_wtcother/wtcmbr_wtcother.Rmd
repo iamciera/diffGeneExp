@@ -82,29 +82,27 @@ head(DEtest$table)
 Create a table of the results, with multiple testing correction.  
 
 ```{r}
-results <- topTags(DEtest) #removed #n=Inf not sure what that means ask Aashish.
-head(results$table) 
+results <- topTags(DEtest, n=Inf)
+head(results)
 ```
 
-These are the topTags, but I want to continue with all the DE genes.  Right?
+These are the topTags, but I want to continue with all the DE genes. 
 How many genes are DE?
-
-
-```{r}
-dim(DEtest$table)
-sum(DEtest$table$PValue<.05)  #changed from sum(results$table$adj.P.Val<.01) which resulted in 0
-```
 
 #How many genes in each direction?
 ```{r}
+
+dim(results$table)
+sum(results$table$FDR<.05) # How many are DE genes?
 summary(decideTestsDGE(DEtest,p.value=.05))
+
 ```
 
 Plot the results
-First create a table of DE to highlight those with p < 0.01
+First create a table of DE to highlight those with p < 0.05
+
 ```{r}
-sig.genes <- rownames(DEtest$table[DEtest$table$PValue<0.05,])
-#sig.genes <- rownames(results$table[results$table$adj.P.Val<0.01,]) #original which returned 0 characters
+sig.genes <- rownames(results$table[results$table$FDR<0.05,]) 
 ```
 
 Visualize with smear plot
@@ -114,8 +112,11 @@ plotSmear(d,de.tags=sig.genes)
 
 ###Subset by significant score
 ```{r}
-results.sig <- subset(DEtest$table, DEtest$table$PValue < 0.01)
+results.sig <- subset(tt$table, tt$table$FDR < 0.05)
+head(results.sig)
+dim(results.sig)
 ```
+
 What are the genes that are misexpressed?
 For this we need to add some annotation
 
@@ -125,18 +126,17 @@ colnames(annotation1)<- c("ITAG", "SGN_annotation")
 annotation2<- read.delim ("../ITAG2.3_all_Arabidopsis_annotated.tsv")
 annotation <- merge (annotation1,annotation2, by =1,1, all.x=TRUE)
 head(annotation)
-#head(results) This returns "Error: Two subscripts required"
 
 DEtest.annotated <- merge(results.sig,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F)
 
-#was 
-#results.annotated <- merge(results$table,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F)
-
-head(DEtest.annotated,n=30)
+#This gives you all genes annotated, not just significant genes. 
+results.annotated <- merge(results$table,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F)
 ```
 
 #Write table with results
-write.table(DEtest.annotated,"wtcmbr_wtcother_DE.txt",sep="\t",row.names=F)
+write.table(DEtest.annotated,"wtcmbr_wtcother_DE.csv",sep="\t",row.names=F)
+write.table(results.annotated,"wtcmbr_wtcother_DE_all.csv",sep="\t",row.names=F)
+
 
 
 
