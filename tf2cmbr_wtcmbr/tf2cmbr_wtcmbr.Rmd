@@ -87,7 +87,6 @@ results$table$ITAG <- rownames(results$table)
 results.all.annotated <- merge(results$table, annotation,by = "ITAG")
 ```
 
-
 Write table with results
 
 ```{r}
