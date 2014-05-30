@@ -4,14 +4,6 @@ WT vs *tf2*
 *tf2* Marginal Blastozone C (base) vs Marginal Blastzone in C (base) region 
 ====================================================
 
-```{r}
-#INSTALL
-biocLite()
-library(edgeR)
-source("http://bioconductor.org/biocLite.R")
-biocLite("limma")
-```
-
 ###Read in Data
 Read in raw count data per gene.
 
@@ -52,12 +44,17 @@ d <- d[rowSums(cpm.d>5)>=3,] #change to 5
 d <- estimateCommonDisp(d,verbose=T) 
 d <- calcNormFactors(d)
 d <- estimateCommonDisp(d)
+
 DEtest <- exactTest(d,pair=c("tf2cmbr","wtcmbr"))
 head(DEtest$table)
+results <- topTags(DEtest, n=Inf)
+head(results)
 
-sum(DEtest$table$PValue<.05)
+dim(results$table)
+sum(results$table$FDR<.05) # How many are DE genes?
 summary(decideTestsDGE(DEtest,p.value=.05))
-sig.genes <- rownames(DEtest$table[DEtest$table$PValue<0.05,])
+
+sig.genes <- rownames(results$table[results$table$FDR<0.05,]) 
 plotSmear(d,de.tags=sig.genes)
 ```
 
@@ -67,26 +64,35 @@ Subset by all the ones with a significant score
 results.sig <- subset(DEtest$table, DEtest$table$PValue < 0.05)
 ```
 
-What are the genes that are misexpressed?
-For this we need to add some annotation.
 
-```{r, results="hide"}
+What are the genes that are misexpressed?
+For this we need to add some annotation
+
+
+Essentially we are merging two annotations files to 1.) only sig genes 2.) all genes
+```{r}
+
 annotation1<- read.delim("../ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
-colnames(annotation1)<- c("ITAG", "SGN_annotation")
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
 annotation2<- read.delim ("../ITAG2.3_all_Arabidopsis_annotated.tsv")
-annotation <- merge(annotation1,annotation2, by =1,1, all.x=TRUE)
-head(annotation, results='hide') 
-results.annotated <- merge(results.sig,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F)
+annotation <- merge(annotation1,annotation2, by = "ITAG")
+
+#Making the only significant gene table
+results.sig$ITAG <- rownames(results.sig)  #change row.names to ITAG for merging
+results.sig.annotated <- merge(results.sig,annotation,by = "ITAG") #This is merging to only sig genes
+
+#Making all table
+
+results$table$ITAG <- rownames(results$table)
+results.all.annotated <- merge(results$table, annotation,by = "ITAG")
 ```
 
-#Write table with results
 
-This is only the significant Genes.
-```write.table(results.annotated,"tf2cmbr_wtcmbr_DE1.txt",sep="\t",row.names=F)```
-
-#Write Full list
+Write table with results
 
 ```{r}
-results.annotated <- merge(DEtest$table,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F) #merge
-write.csv(results.annotated, "tf2cmbr_wtcmbr_DE1_full.csv", row.names=FALSE, na="") #write csv
+write.table(results.all.annotated,"tf2cmbr_wtcmbr_DE_all.txt",sep="\t",row.names=F)
+write.table(results.sig.annotated,"tf2cmbr_wtcmbr_DE.txt",sep="\t",row.names=F)
 ```
+
+

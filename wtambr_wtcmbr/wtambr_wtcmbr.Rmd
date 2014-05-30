@@ -51,6 +51,7 @@ d <- calcNormFactors(d)
 d <- estimateCommonDisp(d)
 DEtest <- exactTest(d,pair=c("wtambr","wtcmbr"))
 head(DEtest$table)
+
 results <- topTags(DEtest, n=Inf)
 head(results)
 
@@ -98,4 +99,6 @@ Write table with results
 write.table(results.all.annotated,"wtambr_wtcmbr_DE_all.txt",sep="\t",row.names=F)
 write.table(results.sig.annotated,"wtambr_wtcmbr_DE.txt",sep="\t",row.names=F)
 ```
+
+
 
