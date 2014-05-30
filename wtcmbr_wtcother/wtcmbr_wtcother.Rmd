@@ -120,23 +120,29 @@ dim(results.sig)
 What are the genes that are misexpressed?
 For this we need to add some annotation
 
-```{r, results = 'head'}
+
+Essentially we are merging two annotations files to 1.) only sig genes 2.) all genes
+```{r}
+
 annotation1<- read.delim("../ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
-colnames(annotation1)<- c("ITAG", "SGN_annotation")
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
 annotation2<- read.delim ("../ITAG2.3_all_Arabidopsis_annotated.tsv")
-annotation <- merge (annotation1,annotation2, by =1,1, all.x=TRUE)
-head(annotation)
+annotation <- merge(annotation1,annotation2, by = "ITAG")
 
-DEtest.annotated <- merge(results.sig,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F)
+#Making the only significant gene table
+results.sig$ITAG <- rownames(results.sig)  #change row.names to ITAG for merging
+results.sig.annotated <- merge(results.sig,annotation,by = "ITAG") #This is merging to only sig genes
 
-#This gives you all genes annotated, not just significant genes. 
-results.annotated <- merge(results$table,annotation,by.x="row.names",by.y="ITAG",all.x=T,sort=F)
+#Making all table
+
+results$table$ITAG <- rownames(results$table)
+results.all.annotated <- merge(results$table, annotation,by = "ITAG") #This s
 ```
 
-#Write table with results
-write.table(DEtest.annotated,"wtcmbr_wtcother_DE.csv",sep="\t",row.names=F)
-write.table(results.annotated,"wtcmbr_wtcother_DE_all.csv",sep="\t",row.names=F)
 
+Write table with results
 
-
-
+```{r}
+write.table(results.all.annotated,"wtcmbr_wtcother_DE_all.txt",sep="\t",row.names=F)
+write.table(results.sig.annotated,"wtcmbr_wtcother_DE.txt",sep="\t",row.names=F)
+```
