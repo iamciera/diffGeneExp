@@ -110,11 +110,13 @@ Visualize with smear plot
 plotSmear(d,de.tags=sig.genes)
 ```
 
-###Subset by significant score
 ```{r}
-results.sig <- subset(tt$table, tt$table$FDR < 0.05)
-head(results.sig)
-dim(results.sig)
+dim(results$table)
+sum(results$table$FDR<.05) # How many are DE genes?
+summary(decideTestsDGE(DEtest,p.value=.05))
+
+sig.genes <- rownames(results$table[results$table$FDR<0.05,]) 
+plotSmear(d,de.tags=sig.genes)
 ```
 
 What are the genes that are misexpressed?

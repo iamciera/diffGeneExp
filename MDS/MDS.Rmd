@@ -8,9 +8,12 @@ library(edgeR)
 ###read in raw count data per gene
 
 ```{r}
-counts <- read.delim("sam2countsResults.tsv",row.names=1)
-Normexplog<- log(counts,2) 
-boxplot(Normexplog)
+counts <- read.delim("../sam2countsResults.tsv",row.names=1)
+boxplot(counts)
+
+#Look at boxplot of log2
+normexplog <- log(counts,2) 
+boxplot(normexplog)
 ```
 
 ```{r}
@@ -20,7 +23,12 @@ head(counts)
 
 ```{r, results='hide'}
 summary(counts)
-boxplot(counts)
+```
+
+Library wtbother1.4 is disturbingly small, I am going to remove it from analysis. 
+
+```{r}
+counts <- subset(counts, select=-c(wtbother1.4))
 ```
 
 Need to convert NA to 0 counts
@@ -28,9 +36,9 @@ Need to convert NA to 0 counts
 counts[is.na(counts)] <- 0
 ```
 
-Convert data to a form that edgeR wants
+We are adding a new column "group", that identifies which library belongs to which group sample type.
+
 ```{r}
-colnames(counts)
 group <- c(
   rep("tf2ambr", 4), 
   rep("tf2aother", 4), 
@@ -41,15 +49,29 @@ group <- c(
   rep("wtambr", 3),
   rep("wtaother", 4),
   rep("wtbmbr", 4),
-  rep("wtbother", 4),
+  rep("wtbother", 3),
   rep("wtcmbr", 6),
   rep("wtcother", 3)
 )
+```
+
+
+Now we have to put the data into a DGEList object. [Here is a nice summary](http://davetang.org/muse/2012/01/19/the-dgelist-object-in-r/) of what the DGEList object is all about.
+
+```{r}
 d <- DGEList(counts=counts, group=group)
+```
+
+Check to make sure each group matches the correct sample.  
+
+```{r}
+head(d$counts)
 d$samples
+
+
 #Filter to exclude genes that have <2 counts in (N Rep)-1
 cpm.d<- cpm(d)
-d <- d[rowSums(cpm.data>10)>=3,] 
+d <- d[rowSums(cpm.d>1)>=3,] 
              
 #normalize library
 d <- calcNormFactors(d)
@@ -59,13 +81,6 @@ write.csv (d$pseudo$pseudo,"normalized_read_count.csv")
 # read in norm data
 data_norm <- read.csv("normalized_read_count.csv", row.names=1)
 dim(data_norm) 
-
-#Boxplot
-Normexplog<- log(data_norm,2)  
-pdf("boxplot.norm.all.pdf")
-boxplot(Normexplog)
-head(Normexplog)
-dev.off()
 ```
 
 MDS using dist and cmdscale
@@ -95,14 +110,14 @@ m$sampleSection <- c(
   rep("ambr", 3),
   rep("aother", 4),
   rep("bmbr", 4),
-  rep("bother", 4),
+  rep("bother", 3),
   rep("cmbr", 6),
   rep("cother", 3)
 )
 
 m$genotype <- c(
   rep("tf2", 24),
-  rep("wt", 24)
+  rep("wt", 23)
 )
 
 m$type <- c(
@@ -115,7 +130,7 @@ m$type <- c(
   rep("mbr", 3),
   rep("other", 4),
   rep("mbr", 4),
-  rep("other", 4),
+  rep("other", 3),
   rep("mbr", 6),
   rep("other", 3)
 )
@@ -143,3 +158,5 @@ ggplot(m, aes(x,y,colour=type, label=sampleSection))+geom_point(size=1)+theme_bw
 ggplot(m, aes(x,y,colour=type, label=sampleSection))+geom_point(size=1)+theme_bw() + geom_text() + facet_grid(. ~ genotype)
 ```
 
+library(rmarkdown)
+render("MDS.Rmd", "pdf_document")

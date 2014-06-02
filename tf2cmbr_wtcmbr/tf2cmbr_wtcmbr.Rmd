@@ -1,6 +1,8 @@
 WT vs *tf2*
 ----
 
+region1 <- "wt2cmbr"
+
 *tf2* Marginal Blastozone C (base) vs Marginal Blastzone in C (base) region 
 ====================================================
 
@@ -30,7 +32,7 @@ colnames(tf2cmbrVSwtcmbr)
 ```
 
 ```{r}
-group <- c(rep("tf2cmbr", 4), rep("wtcmbr", 4))
+group <- c(rep(region1, 4), rep(region2, 4))
 d <- DGEList(counts=tf2cmbrVSwtcmbr,group=group)
 ```
 

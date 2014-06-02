@@ -101,4 +101,5 @@ write.table(results.all.annotated,"wtbmbr_wtbother_DE_all.txt",sep="\t",row.name
 write.table(results.sig.annotated,"wtbmbr_wtbother_DE.txt",sep="\t",row.names=F)
 ```
 
-
+library(rmarkdown)
+render("wtbmbr_wtbother.attempt2.Rmd", "pdf_document")

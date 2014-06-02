@@ -101,3 +101,5 @@ write.table(results.sig.annotated,"wtambr_aother_DE.txt",sep="\t",row.names=F)
 ```
 
 
+library(rmarkdown)
+render("wtambr_wtaother.Rmd", "pdf_document")
