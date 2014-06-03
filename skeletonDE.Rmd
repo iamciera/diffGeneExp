@@ -1,0 +1,115 @@
+###Read in YAML guide
+
+```{r}
+library(yaml)
+yamls <- yaml.load_file("de.yml")
+sample1 <- yamls$sample1
+sample2 <- yamls$sample2
+
+sample1
+sample2
+```
+
+###Read in Data
+Read in raw count data per gene.
+
+```{r, results='hide'}
+counts <- read.delim("../sam2countsResults.tsv",row.names=1)
+
+#check the file
+head(counts)
+summary(counts)
+colnames(counts)
+#need to convert NA to 0 counts
+counts[is.na(counts)] <- 0
+```
+
+###Subset per DE expirement
+
+I am going to start by subsetting the particular treatments I am looking at. 
+
+```{r}
+colnames(counts)
+counts1 <- counts[,grep(sample1, colnames(counts), value = TRUE)]
+count1Len <- length(colnames(counts1)) #used in to specify library group in next step.
+
+counts2 <- counts[,grep(sample2, colnames(counts), value = TRUE)]
+count2Len <- length(colnames(counts2)) #used to specify library group in next step. 
+
+counts <- cbind(counts1, counts2)
+
+head(counts)
+```
+
+###Add column specifying library Group
+
+Make a vector called group that will be used to make a new column named group to identify library region type. 
+
+```{r}
+group <- c(rep(sample1, count1Len), rep(sample2, count2Len))
+d <- DGEList(counts=counts,group=group)
+```
+
+```{r}
+d$samples
+```
+
+```{r}
+cpm.d <- cpm(d)
+d <- d[rowSums(cpm.d>5)>=3,] #change to 5
+d <- estimateCommonDisp(d,verbose=T) 
+d <- calcNormFactors(d)
+d <- estimateCommonDisp(d)
+
+DEtest <- exactTest(d,pair=c(sample1,sample2))
+head(DEtest$table)
+results <- topTags(DEtest, n=Inf)
+head(results)
+
+dim(results$table)
+sum(results$table$FDR<.05) # How many are DE genes?
+summary(decideTestsDGE(DEtest,p.value=.05))
+
+sig.genes <- rownames(results$table[results$table$FDR<0.05,]) # outputs just significant gene names
+
+plotSmear(d,de.tags=sig.genes)
+```
+
+Subset by all the ones with a significant score
+
+```{r}
+results.sig <- subset(results$table, results$table$FDR < 0.05)
+```
+
+What are the genes that are misexpressed?
+For this we need to add some annotation
+
+
+Essentially we are merging two annotations files to 1.) only sig genes 2.) all genes
+```{r}
+
+annotation1<- read.delim("../ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
+annotation2<- read.delim ("../ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation <- merge(annotation1,annotation2, by = "ITAG")
+
+#Making the only significant gene table
+results.sig$ITAG <- rownames(results.sig)  #change row.names to ITAG for merging
+results.sig.annotated <- merge(results.sig,annotation,by = "ITAG") #This is merging to only sig genes
+
+#Making all table
+
+results$table$ITAG <- rownames(results$table)
+results.all.annotated <- merge(results$table, annotation,by = "ITAG")
+```
+
+Write table with results
+
+```{r}
+write.table(results.all.annotated,"DE_all.txt",sep="\t",row.names=F)
+write.table(results.sig.annotated,"DE_sig.txt",sep="\t",row.names=F)
+```
+
+library(rmarkdown)
+render("skeletonDE.Rmd", "pdf_document")
+
