@@ -1,8 +1,25 @@
+#Skeleton Key for RNAseq analysis
+*Written By: Ciera Martinez*
+
+*See README.md for more detailed instructions of how to use script*
+  
+##Analysis
+
+###libraries
+```{r}
+library(edgeR)
+library(yaml)
+```
+
 ###Read in YAML guide
 
 ```{r}
-library(yaml)
 yamls <- yaml.load_file("de.yml")
+```
+
+This part assigns your YMAL to a object in R.  This will be used throughout the script to specify which sample types you are comparing. 
+
+```{r}
 sample1 <- yamls$sample1
 sample2 <- yamls$sample2
 
@@ -14,19 +31,18 @@ sample2
 Read in raw count data per gene.
 
 ```{r, results='hide'}
-counts <- read.delim("../sam2countsResults.tsv",row.names=1)
+counts <- read.delim("../requisiteData/sam2countsResults.tsv",row.names=1)
 
 #check the file
 head(counts)
-summary(counts)
 colnames(counts)
 #need to convert NA to 0 counts
 counts[is.na(counts)] <- 0
 ```
 
-###Subset per DE expirement
+###Subset DE expirement
 
-I am going to start by subsetting the particular treatments I am looking at. 
+Start by subsetting the particular treatments which are being compared. 
 
 ```{r}
 colnames(counts)
@@ -50,13 +66,19 @@ group <- c(rep(sample1, count1Len), rep(sample2, count2Len))
 d <- DGEList(counts=counts,group=group)
 ```
 
+Check to see if the group column matches your sample name and they are appropriate.
+
 ```{r}
 d$samples
 ```
 
+###Differential expression using edgeR
+
+Make sure there is full understanding on each edgeR command being used. The manual is amazing so read it *before* running the DE analysis below  [edgeR manual](http://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf). 
+
 ```{r}
-cpm.d <- cpm(d)
-d <- d[rowSums(cpm.d>5)>=3,] #change to 5
+cpm.d <- cpm(d) #counts per mutant
+d <- d[rowSums(cpm.d>5)>=3,] #This might be a line to adjust. It is removing genes with low counts. 
 d <- estimateCommonDisp(d,verbose=T) 
 d <- calcNormFactors(d)
 d <- estimateCommonDisp(d)
@@ -75,22 +97,21 @@ sig.genes <- rownames(results$table[results$table$FDR<0.05,]) # outputs just sig
 plotSmear(d,de.tags=sig.genes)
 ```
 
-Subset by all the ones with a significant score
+Subset by all the genes with a significant FDR score.
 
 ```{r}
 results.sig <- subset(results$table, results$table$FDR < 0.05)
 ```
 
 What are the genes that are misexpressed?
-For this we need to add some annotation
-
+For this we need to add some annotation.
 
 Essentially we are merging two annotations files to 1.) only sig genes 2.) all genes
 ```{r}
 
-annotation1<- read.delim("../ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
+annotation1<- read.delim("../requisiteData/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
 colnames(annotation1) <- c("ITAG", "SGN_annotation")
-annotation2<- read.delim ("../ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation2<- read.delim ("../requisiteData/ITAG2.3_all_Arabidopsis_annotated.tsv")
 annotation <- merge(annotation1,annotation2, by = "ITAG")
 
 #Making the only significant gene table
@@ -103,13 +124,17 @@ results$table$ITAG <- rownames(results$table)
 results.all.annotated <- merge(results$table, annotation,by = "ITAG")
 ```
 
-Write table with results
+Write table with results. 
 
 ```{r}
-write.table(results.all.annotated,"DE_all.txt",sep="\t",row.names=F)
-write.table(results.sig.annotated,"DE_sig.txt",sep="\t",row.names=F)
+write.table(results.all.annotated, file=paste(sample1,"_",sample2,"_","DE_all.txt",sep=""),sep="\t",row.names=F)
+write.table(results.sig.annotated, file=paste(sample1,"_",sample2,"_","DE_sig.txt",sep=""),sep="\t",row.names=F)
 ```
 
+Now run the script below for a full `knitr` report of what was run and leave this report in the folder that the analysis was done with output files. 
+
+```{r, eval = FALSE}
 library(rmarkdown)
-render("skeletonDE.Rmd", "pdf_document")
+render("skeletonDE.Rmd", "pdf_document", output_file = paste(sample1,"_",sample2,"_","DE.pdf",sep=""))
+```
 
