@@ -2,8 +2,15 @@
 *Written By: Ciera Martinez*
 
 *See README.md for more detailed instructions of how to use script*
-  
-##Analysis
+
+Run the `render()` function below and everything will be run with report at end.
+```{r, eval = FALSE}
+library(rmarkdown)
+render("skeletonDE.Rmd", "pdf_document", output_file = paste(sample1,"_",sample2,"_","DE.pdf",sep=""))
+```  
+
+
+##Analysis (Aucutal start)
 
 ###libraries
 ```{r}
@@ -13,6 +20,7 @@ library(yaml)
 
 ###Read in YAML guide
 
+This reads in the information in the `de.yml` file which has the two names of the samples you are interested in comparing. 
 ```{r}
 yamls <- yaml.load_file("de.yml")
 ```
@@ -42,7 +50,7 @@ counts[is.na(counts)] <- 0
 
 ###Subset DE expirement
 
-Start by subsetting the particular treatments which are being compared. 
+Start by subsetting the particular treatments which are being compared. This might need to be modified depending on the naming of your samples.  In my case each sample is named by sample and rep number, so the script is identifying any sample with the sample name given in the `de.yml` file. 
 
 ```{r}
 colnames(counts)
@@ -74,7 +82,7 @@ d$samples
 
 ###Differential expression using edgeR
 
-Make sure there is full understanding on each edgeR command being used. The manual is amazing so read it *before* running the DE analysis below  [edgeR manual](http://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf). 
+Make sure there is full understanding of each edgeR command being used. The manual is amazing so read it *before* running the DE analysis below  [edgeR manual](http://www.bioconductor.org/packages/release/bioc/vignettes/edgeR/inst/doc/edgeRUsersGuide.pdf). There are many options and they must be set to be appropriate for your analysis. 
 
 ```{r}
 cpm.d <- cpm(d) #counts per mutant
@@ -97,11 +105,12 @@ sig.genes <- rownames(results$table[results$table$FDR<0.05,]) # outputs just sig
 plotSmear(d,de.tags=sig.genes)
 ```
 
-Subset by all the genes with a significant FDR score.
+Subset all the genes with a significant FDR score less than .05.  
 
 ```{r}
 results.sig <- subset(results$table, results$table$FDR < 0.05)
 ```
+dim(results.sig)
 
 What are the genes that are misexpressed?
 For this we need to add some annotation.
@@ -113,10 +122,11 @@ annotation1<- read.delim("../requisiteData/ITAG2.3_all_Arabidopsis_ITAG_annotati
 colnames(annotation1) <- c("ITAG", "SGN_annotation")
 annotation2<- read.delim ("../requisiteData/ITAG2.3_all_Arabidopsis_annotated.tsv")
 annotation <- merge(annotation1,annotation2, by = "ITAG")
+head(annotation)
 
 #Making the only significant gene table
 results.sig$ITAG <- rownames(results.sig)  #change row.names to ITAG for merging
-results.sig.annotated <- merge(results.sig,annotation,by = "ITAG") #This is merging to only sig genes
+results.sig.annotated <- merge(results.sig,annotation,by = "ITAG", all.x=TRUE) #This is merging only sig genes
 
 #Making all table
 
@@ -133,8 +143,5 @@ write.table(results.sig.annotated, file=paste(sample1,"_",sample2,"_","DE_sig.tx
 
 Now run the script below for a full `knitr` report of what was run and leave this report in the folder that the analysis was done with output files. 
 
-```{r, eval = FALSE}
-library(rmarkdown)
-render("skeletonDE.Rmd", "pdf_document", output_file = paste(sample1,"_",sample2,"_","DE.pdf",sep=""))
-```
+
 
