@@ -8,7 +8,7 @@ library(edgeR)
 ###read in raw count data per gene
 
 ```{r}
-counts <- read.delim("../sam2countsResults.tsv",row.names=1)
+counts <- read.delim("../requisiteData/sam2countsResults.tsv",row.names=1)
 boxplot(counts)
 
 #Look at boxplot of log2
