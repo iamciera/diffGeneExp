@@ -1,0 +1,37 @@
+"","ITAG","SGN_annotation","AGI","symbol","gene_name","X..identity","alignment.length","e.value","bit.score","percent.query.align"
+"1","Solyc00g014800.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"2","Solyc00g121730.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"3","Solyc00g131710.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"4","Solyc00g142160.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"5","Solyc01g016950.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"6","Solyc01g028970.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"7","Solyc01g049700.2.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"8","Solyc01g102600.2.1","Eukaryotic translation initiation factor 3 subunit 8-like protein (AHRD V1 ***- Q9LIL2_ARATH); contains Interpro domain(s)  IPR008905  Eukaryotic translation initiation factor 3 subunit 8, N-terminal ","AT3G56150","ATEIF3C-1","member of eIF3c - eukaryotic initiation factor 3c",69,300,1e-98,356,83.19327731
+"9","Solyc02g025080.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"10","Solyc03g013360.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"11","Solyc03g044360.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"12","Solyc03g083380.2.1","Diacylglycerol O-acyltransferase (AHRD V1 ***- A5UWY0_ROSS1); contains Interpro domain(s)  IPR009721  Protein of unknown function DUF1298 ","AT5G53390",NA,"similar to unknown protein [Arabidopsis thaliana] (TAIR:AT2G38995.1); similar to Protein of unknown function DUF1298 [Medicago truncatula] (GB:ABE82755.1); contains InterPro domain Protein of unknown function UPF0089; (InterPro:IPR004255); contains InterPro domain Protein of unknown function DUF1298; (InterPro:IPR009721)",50.11,469,5e-137,484,92.41516966
+"13","Solyc03g119050.2.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"14","Solyc04g049360.2.1","4-amino-4-deoxychorismate synthase component I (AHRD V1 **** D9W9C0_STRHY); contains Interpro domain(s)  IPR005802  Para-aminobenzoate synthase, component I ","AT2G28880","ADCS","EMB1997 (EMBRYO DEFECTIVE 1997); catalytic/ ligase/ oxo-acid-lyase; similar to ASA2 (anthranilate synthase 2), anthranilate synthase [Arabidopsis thaliana] (TAIR:AT2G29690.1); similar to aminodeoxychorismate synthase/glutamine amidotransferase [Lycopersicon esculentum] (GB:AAR83121.1); similar to putative aminodeoxychorismate synthase/glutamin amidotransferase [Oryza sativa (japonica cultivar-group)] (GB:BAD54000.1); contains InterPro domain Glutamine amidotransferase class-I; (InterPro:IPR000991); contains InterPro domain Carbamoyl-phosphate synthase, GATase region; (InterPro:IPR001317); contains InterPro domain Glutamine amidotransferase, class I, active site; (InterPro:IPR012998); contains InterPro domain Anthranilate synthase component I, N-terminal; (InterPro:IPR006805); contains InterPro domain Para-aminobenzoate synthase, component I; (InterPro:IPR005802); contains InterPro domain Anthranilate synthase component II/delta crystallin; (InterPro:IPR006220); contains InterPro domain Glutamine amidotransferase superfamily; (InterPro:IPR011702); contains InterPro domain Anthranilate synthase component I and chorismate binding protein; (InterPro:IPR005801)",61.75,881,0,1060,94.68438538
+"15","Solyc04g080830.2.1","Pentatricopeptide repeat-containing protein (AHRD V1 ***- D7KGE6_ARALY); contains Interpro domain(s)  IPR002885  Pentatricopeptide repeat ","AT1G19720",NA,"pentatricopeptide (PPR) repeat-containing protein; similar to pentatricopeptide (PPR) repeat-containing protein [Arabidopsis thaliana] (TAIR:AT1G20230.1); similar to putative pentatricopeptide repeat containing protein [Oryza sativa (japonica cultivar-group)] (GB:AAP21424.1); contains InterPro domain Pentatricopeptide repeat; (InterPro:IPR002885); contains InterPro domain Protein prenyltransferase; (InterPro:IPR008940); contains InterPro domain Tetratricopeptide-like helical; (InterPro:IPR011990)",52.11,877,0,959,91.97465681
+"16","Solyc05g016480.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"17","Solyc05g050560.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"18","Solyc06g072290.2.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"19","Solyc07g025190.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"20","Solyc07g039270.2.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"21","Solyc07g052730.2.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"22","Solyc08g022200.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"23","Solyc08g023400.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"24","Solyc08g081290.2.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"25","Solyc09g007690.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"26","Solyc09g066020.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"27","Solyc10g008880.2.1","One zinc finger protein (AHRD V1 **-- Q75PR0_PHYPA)","AT1G28520","ATVOZ1","similar to unknown protein [Arabidopsis thaliana] (TAIR:AT2G42400.1); similar to putative vascular plant one zinc finger protein [Oryza sativa (japonica cultivar-group)] (GB:BAD87186.1); contains InterPro domain Colicin E3, catalytic; (InterPro:IPR009105)",65.76,476,8e-159,556,93.72384937
+"28","Solyc10g045000.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"29","Solyc10g050260.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"30","Solyc10g083950.1.1","Nodulin family protein (AHRD V1 ***- D7MWD3_ARALY); contains Interpro domain(s)  IPR010658  Nodulin-like ","AT2G39210",NA,"nodulin family protein; similar to nodulin family protein [Arabidopsis thaliana] (TAIR:AT2G28120.1); similar to putative nodule-specific protein [Oryza sativa (japonica cultivar-group)] (GB:AAO37543.1); similar to nitrate and chloride transporter [Glycine max] (GB:AAW51884.1); similar to putative nodule-specific protein [Oryza sativa (japonica cultivar-group)] (GB:BAC83908.1); contains InterPro domain Nodulin-like; (InterPro:IPR010658)",60.11,559,0,680,96.31578947
+"31","Solyc11g017260.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"32","Solyc11g020560.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"33","Solyc11g030740.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"34","Solyc11g050910.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"35","Solyc11g064800.1.1",NA,NA,NA,NA,NA,NA,NA,NA,NA
+"36","Solyc12g094440.1.1","High mobility group family (Fragment) (AHRD V1 **-- B9GFX2_POPTR); contains Interpro domain(s)  IPR001606  AT-rich interaction region ","AT1G76110",NA,"high mobility group (HMG1/2) family protein / ARID/BRIGHT DNA-binding domain-containing protein; similar to high mobility group (HMG1/2) family protein / ARID/BRIGHT DNA-binding domain-containing protein [Arabidopsis thaliana] (TAIR:AT1G04880.1); similar to glutathione S-transferase GST 16 - like protein [Oryza sativa (japonica cultivar-group)] (GB:BAC79159.1); contains InterPro domain HMG1/2 (high mobility group) box; (InterPro:IPR000910); contains InterPro domain AT-rich interaction region; (InterPro:IPR001606); contains InterPro domain High mobility group box; (InterPro:IPR009071)",50.97,310,5e-77,284,94.40559441

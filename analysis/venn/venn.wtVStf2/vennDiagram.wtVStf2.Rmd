@@ -1,0 +1,448 @@
+#Exploring Differential Expression (DE) in common between *tf2* and wt of the same regions
+
+##Question
+Are there similar up/down-regulated genes in the same region between the two genotypes. 
+
+##Approach: 
+
+1. Read in the results from the DE  analysis between mbr_other in each genotype.  
+2. The results of this analysis is all significant DE genes. Subset the up-regulated and down-regulated by a fold change of 1 (-1 for down-regulated).
+3. Compare up-regulated in *tf2* to up-regulated in WT. 1.) visualize with venn diagram and 2.) print out list of similar vs disimilar genes. 
+4. Repeat for each region A, B, C.
+
+##Script
+
+To run script and create a report at the end, run `rmarkdown` code below.
+
+```{r, eval=FALSE}
+library(rmarkdown)
+render("vennDiagram.wtVStf2.Rmd", "pdf_document")
+```
+
+Read in required libraries.
+
+```{r}
+library(VennDiagram)
+```
+
+##Upload annotation data for table outputs
+
+```{r}
+annotation1<- read.delim("../../requisiteData/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
+colnames(annotation1) <- c("ITAG", "SGN_annotation")
+annotation2<- read.delim ("../../requisiteData/ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation <- merge(annotation1,annotation2, by = "ITAG")
+```
+
+##A region (tip)
+
+```{r}
+#Read in Data
+aRegionWt <- read.table("../../DE/wtambr_wtaother/wtambr_wtaother_DE_sig.txt", sep="", header = TRUE, fill = TRUE)
+aRegionTf2 <- read.table("../../DE/tf2ambr_tf2aother/tf2ambr_tf2aother_DE_sig.txt", header = TRUE, fill = TRUE)
+
+#Force numeric
+aRegionWt$logFC <- as.numeric(as.character(aRegionWt$logFC))
+aRegionTf2$logFC <- as.numeric(as.character(aRegionTf2$logFC))
+
+
+#Subset based on Log Fold Change (logFC)
+
+#tf2
+aRegionTf2Up <- subset(aRegionTf2, logFC > 0)
+aRegionTf2Down <- subset(aRegionTf2, logFC < 0)
+
+#wt
+aRegionWtUp <- subset(aRegionWt, logFC > 0)
+aRegionWtDown <- subset(aRegionWt, logFC < 0)
+```
+
+
+###ALL GENES
+This takes all significant gene regardless of up-regulated or down-regulated.
+
+```{r}
+dir.create("aRegion/all") #Creates directory to put all out tables.
+
+#all
+aRegionAll <- matrix(intersect(aRegionWt$ITAG, aRegionTf2$ITAG))
+colnames(aRegionAll) <- c("ITAG")
+aRegionAll.annotated <- merge(aRegionAll, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(aRegionAll.annotated, file = "aRegion/all/aRegionAll.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(aRegionWt$ITAG),
+                                area2    = length(aRegionTf2$ITAG),
+                                cross.area = length(aRegionAll),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+aRegionWtOnly <- matrix(setdiff(aRegionWt$ITAG, aRegionTf2$ITAG))
+aRegionTf2Only <- matrix(setdiff(aRegionTf2$ITAG, aRegionWt$ITAG))
+
+colnames(aRegionWtOnly) <- c("ITAG")
+colnames(aRegionTf2Only) <- c("ITAG")
+
+aRegionWtOnly.annotated <- merge(aRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+aRegionTf2Only.annotated <- merge(aRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(aRegionTf2Only.annotated, file = "aRegion/all/aRegionTf2Only.annotated.csv") #write .csv file
+write.csv(aRegionWtOnly.annotated, file = "aRegion/all/aRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##UP Regulation Genes
+This takes up significant gene  up-regulated.
+
+```{r}
+dir.create("aRegion/up") #Creates directory to put up out tables.
+
+#up
+aRegionup <- matrix(intersect(aRegionWtUp$ITAG, aRegionTf2Up$ITAG))
+colnames(aRegionup) <- c("ITAG")
+aRegionup.annotated <- merge(aRegionup, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(aRegionup.annotated, file = "aRegion/up/aRegionup.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(aRegionWtUp$ITAG),
+                                area2    = length(aRegionTf2Up$ITAG),
+                                cross.area = length(aRegionup),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+aRegionWtOnly <- matrix(setdiff(aRegionWtUp$ITAG, aRegionTf2Up$ITAG))
+aRegionTf2Only <- matrix(setdiff(aRegionTf2Up$ITAG, aRegionWtUp$ITAG))
+
+colnames(aRegionWtOnly) <- c("ITAG")
+colnames(aRegionTf2Only) <- c("ITAG")
+
+aRegionWtOnly.annotated <- merge(aRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+aRegionTf2Only.annotated <- merge(aRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(aRegionTf2Only.annotated, file = "aRegion/up/aRegionTf2Only.annotated.csv") #write .csv file
+write.csv(aRegionWtOnly.annotated, file = "aRegion/up/aRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##Down Regulated Genes
+
+Down regulated genes means significantly down regulated.
+
+```{r}
+dir.create("aRegion/down") #Creates directory to put Down out tables.
+
+#Down
+aRegionDown <- matrix(intersect(aRegionWtDown$ITAG, aRegionTf2Down$ITAG))
+colnames(aRegionDown) <- c("ITAG")
+aRegionDown.annotated <- merge(aRegionDown, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(aRegionDown.annotated, file = "aRegion/down/aRegionDown.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(aRegionWtDown$ITAG),
+                                area2    = length(aRegionTf2Down$ITAG),
+                                cross.area = length(aRegionDown),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+
+aRegionWtOnly <- matrix(setdiff(aRegionWtDown$ITAG, aRegionTf2Down$ITAG))
+aRegionTf2Only <- matrix(setdiff(aRegionTf2Down$ITAG, aRegionWtDown$ITAG))
+
+colnames(aRegionWtOnly) <- c("ITAG")
+colnames(aRegionTf2Only) <- c("ITAG")
+
+aRegionWtOnly.annotated <- merge(aRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+aRegionTf2Only.annotated <- merge(aRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(aRegionTf2Only.annotated, file = "aRegion/down/aRegionTf2Only.annotated.csv") #write .csv file
+write.csv(aRegionWtOnly.annotated, file = "aRegion/down/aRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##B region (middle)
+
+```{r}
+#Read in Data
+bRegionWt <- read.table("../../DE/wtbmbr_wtbother/wtbmbr_wtbother_DE_sig.txt", sep="", header = TRUE, fill = TRUE)
+bRegionTf2 <- read.table("../../DE/tf2bmbr_tf2bother/tf2bmbr_tf2bother_DE_sig.txt", header = TRUE, fill = TRUE)
+
+#Force numeric
+bRegionWt$logFC <- as.numeric(as.character(bRegionWt$logFC))
+bRegionTf2$logFC <- as.numeric(as.character(bRegionTf2$logFC))
+
+
+#Subset based on Log Fold Change (logFC)
+
+#tf2
+bRegionTf2Up <- subset(bRegionTf2, logFC > 0)
+bRegionTf2Down <- subset(bRegionTf2, logFC < 0)
+
+#wt
+bRegionWtUp <- subset(bRegionWt, logFC > 0)
+bRegionWtDown <- subset(bRegionWt, logFC < 0)
+```
+
+
+###ALL GENES
+This takes all significant gene regardless of up-regulated or down-regulated.
+
+```{r}
+dir.create("bRegion/all") #Creates directory to put all out tables.
+
+#all
+bRegionAll <- matrix(intersect(bRegionWt$ITAG, bRegionTf2$ITAG))
+colnames(bRegionAll) <- c("ITAG")
+bRegionAll.annotated <- merge(bRegionAll, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(bRegionAll.annotated, file = "bRegion/all/bRegionAll.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(bRegionWt$ITAG),
+                                area2    = length(bRegionTf2$ITAG),
+                                cross.area = length(bRegionAll),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+bRegionWtOnly <- matrix(setdiff(bRegionWt$ITAG, bRegionTf2$ITAG))
+bRegionTf2Only <- matrix(setdiff(bRegionTf2$ITAG, bRegionWt$ITAG))
+
+colnames(bRegionWtOnly) <- c("ITAG")
+colnames(bRegionTf2Only) <- c("ITAG")
+
+bRegionWtOnly.annotated <- merge(bRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+bRegionTf2Only.annotated <- merge(bRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(bRegionTf2Only.annotated, file = "bRegion/all/bRegionTf2Only.annotated.csv") #write .csv file
+write.csv(bRegionWtOnly.annotated, file = "bRegion/all/bRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##UP Regulation Genes
+This takes up significant gene  up-regulated.
+
+```{r}
+dir.create("bRegion/up") #Creates directory to put up out tables.
+
+#up
+bRegionup <- matrix(intersect(bRegionWtUp$ITAG, bRegionTf2Up$ITAG))
+colnames(bRegionup) <- c("ITAG")
+bRegionup.annotated <- merge(bRegionup, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(bRegionup.annotated, file = "bRegion/up/bRegionup.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(bRegionWtUp$ITAG),
+                                area2    = length(bRegionTf2Up$ITAG),
+                                cross.area = length(bRegionup),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+bRegionWtOnly <- matrix(setdiff(bRegionWtUp$ITAG, bRegionTf2Up$ITAG))
+bRegionTf2Only <- matrix(setdiff(bRegionTf2Up$ITAG, bRegionWtUp$ITAG))
+
+colnames(bRegionWtOnly) <- c("ITAG")
+colnames(bRegionTf2Only) <- c("ITAG")
+
+bRegionWtOnly.annotated <- merge(bRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+bRegionTf2Only.annotated <- merge(bRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(bRegionTf2Only.annotated, file = "bRegion/up/bRegionTf2Only.annotated.csv") #write .csv file
+write.csv(bRegionWtOnly.annotated, file = "bRegion/up/bRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##Down Regulated Genes
+
+Down regulated genes means significantly down regulated.
+
+```{r}
+dir.create("bRegion/down") #Creates directory to put Down out tables.
+
+#Down
+bRegionDown <- matrix(intersect(bRegionWtDown$ITAG, bRegionTf2Down$ITAG))
+colnames(bRegionDown) <- c("ITAG")
+bRegionDown.annotated <- merge(bRegionDown, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(bRegionDown.annotated, file = "bRegion/down/bRegionDown.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(bRegionWtDown$ITAG),
+                                area2    = length(bRegionTf2Down$ITAG),
+                                cross.area = length(bRegionDown),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+
+bRegionWtOnly <- matrix(setdiff(bRegionWtDown$ITAG, bRegionTf2Down$ITAG))
+bRegionTf2Only <- matrix(setdiff(bRegionTf2Down$ITAG, bRegionWtDown$ITAG))
+
+colnames(bRegionWtOnly) <- c("ITAG")
+colnames(bRegionTf2Only) <- c("ITAG")
+
+bRegionWtOnly.annotated <- merge(bRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+bRegionTf2Only.annotated <- merge(bRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(bRegionTf2Only.annotated, file = "bRegion/down/bRegionTf2Only.annotated.csv") #write .csv file
+write.csv(bRegionWtOnly.annotated, file = "bRegion/down/bRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##C region (tip)
+
+```{r}
+#Read in Data
+bRegionWt <- read.table("../../DE/wtcmbr_wtcother/wtcmbr_wtcother_DE_sig.txt", sep="", header = TRUE, fill = TRUE)
+bRegionTf2 <- read.table("../../DE/tf2cmbr_tf2cother/tf2cmbr_tf2cother_DE_sig.txt", header = TRUE, fill = TRUE)
+
+#Force numeric
+cRegionWt$logFC <- as.numeric(as.character(cRegionWt$logFC))
+cRegionTf2$logFC <- as.numeric(as.character(cRegionTf2$logFC))
+
+
+#Subset based on Log Fold Change (logFC)
+
+#tf2
+cRegionTf2Up <- subset(cRegionTf2, logFC > 0)
+cRegionTf2Down <- subset(cRegionTf2, logFC < 0)
+
+#wt
+cRegionWtUp <- subset(cRegionWt, logFC > 0)
+cRegionWtDown <- subset(cRegionWt, logFC < 0)
+```
+
+
+###ALL GENES
+This takes all significant gene regardless of up-regulated or down-regulated.
+
+```{r}
+dir.create("cRegion/all") #Creates directory to put all out tables.
+
+#all
+cRegionAll <- matrix(intersect(cRegionWt$ITAG, cRegionTf2$ITAG))
+colnames(cRegionAll) <- c("ITAG")
+cRegionAll.annotated <- merge(cRegionAll, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(cRegionAll.annotated, file = "cRegion/all/cRegionAll.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(cRegionWt$ITAG),
+                                area2    = length(cRegionTf2$ITAG),
+                                cross.area = length(cRegionAll),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+cRegionWtOnly <- matrix(setdiff(cRegionWt$ITAG, cRegionTf2$ITAG))
+cRegionTf2Only <- matrix(setdiff(cRegionTf2$ITAG, cRegionWt$ITAG))
+
+colnames(cRegionWtOnly) <- c("ITAG")
+colnames(cRegionTf2Only) <- c("ITAG")
+
+cRegionWtOnly.annotated <- merge(cRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+cRegionTf2Only.annotated <- merge(cRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(cRegionTf2Only.annotated, file = "cRegion/all/cRegionTf2Only.annotated.csv") #write .csv file
+write.csv(cRegionWtOnly.annotated, file = "cRegion/all/cRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##UP Regulation Genes
+This takes up significant gene  up-regulated.
+
+```{r}
+dir.create("cRegion/up") #Creates directory to put up out tables.
+
+#up
+cRegionup <- matrix(intersect(cRegionWtUp$ITAG, cRegionTf2Up$ITAG))
+colnames(cRegionup) <- c("ITAG")
+cRegionup.annotated <- merge(cRegionup, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(cRegionup.annotated, file = "cRegion/up/cRegionup.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(cRegionWtUp$ITAG),
+                                area2    = length(cRegionTf2Up$ITAG),
+                                cross.area = length(cRegionup),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+cRegionWtOnly <- matrix(setdiff(cRegionWtUp$ITAG, cRegionTf2Up$ITAG))
+cRegionTf2Only <- matrix(setdiff(cRegionTf2Up$ITAG, cRegionWtUp$ITAG))
+
+colnames(cRegionWtOnly) <- c("ITAG")
+colnames(cRegionTf2Only) <- c("ITAG")
+
+cRegionWtOnly.annotated <- merge(cRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+cRegionTf2Only.annotated <- merge(cRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(cRegionTf2Only.annotated, file = "cRegion/up/cRegionTf2Only.annotated.csv") #write .csv file
+write.csv(cRegionWtOnly.annotated, file = "cRegion/up/cRegionWtOnly.annotated.csv") #write .csv file
+```
+
+##Down Regulated Genes
+
+Down regulated genes means significantly down regulated.
+
+```{r}
+dir.create("bRegion/down") #Creates directory to put Down out tables.
+
+#Down
+bRegionDown <- matrix(intersect(bRegionWtDown$ITAG, bRegionTf2Down$ITAG))
+colnames(bRegionDown) <- c("ITAG")
+bRegionDown.annotated <- merge(bRegionDown, annotation, by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+write.csv(bRegionDown.annotated, file = "bRegion/down/bRegionDown.annotated.csv") #write .csv file
+
+#Makes the grid
+grid.newpage()
+venn.plot <- draw.pairwise.venn(area1    = length(bRegionWtDown$ITAG),
+                                area2    = length(bRegionTf2Down$ITAG),
+                                cross.area = length(bRegionDown),
+                                scaled = FALSE,
+                                category = c("wt", "tf2"),
+                                fill     = c("blue", "red"),
+                                alpha    = 0.3)
+grid.draw(venn.plot)
+
+#Get only genes specific to wt
+
+bRegionWtOnly <- matrix(setdiff(bRegionWtDown$ITAG, bRegionTf2Down$ITAG))
+bRegionTf2Only <- matrix(setdiff(bRegionTf2Down$ITAG, bRegionWtDown$ITAG))
+
+colnames(bRegionWtOnly) <- c("ITAG")
+colnames(bRegionTf2Only) <- c("ITAG")
+
+bRegionWtOnly.annotated <- merge(bRegionWtOnly, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+bRegionTf2Only.annotated <- merge(bRegionTf2Only, annotation,by = "ITAG", by.x = TRUE, all.x = TRUE) #Merge with annotated
+
+write.csv(bRegionTf2Only.annotated, file = "bRegion/down/bRegionTf2Only.annotated.csv") #write .csv file
+write.csv(bRegionWtOnly.annotated, file = "bRegion/down/bRegionWtOnly.annotated.csv") #write .csv file
+```
+
+
