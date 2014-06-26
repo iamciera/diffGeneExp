@@ -60,7 +60,7 @@ genesOfInterest <- levels(genes)
 The loop:
 
 ```{r, tidy = FALSE}
-for(GENE in genesOfInterest[4:5]) {
+for(GENE in genesOfInterest[11:20]) {
  
   if(length(grep(GENE, countData$gene)) < 1){
     next;
@@ -73,6 +73,7 @@ for(GENE in genesOfInterest[4:5]) {
                mean = mean(count),
                sd   = sd(count),
                se   = sd / sqrt(N) )
+
   
   #Plot 1
  plot1 <- ggplot(sumGraph, aes(type, mean, fill = genotype)) + 
@@ -84,8 +85,8 @@ for(GENE in genesOfInterest[4:5]) {
           axis.text.x = element_text(angle=90, vjust=1)) + 
     ggtitle(GENE)
  
- print(plot1)
-  
+ ggsave(filename= paste(GENE,"Plot1.pdf")) #Print Plot
+        
   #Plot 2
 plot2  <- ggplot(sumGraph, aes(genotype, mean, fill = type)) + 
   geom_bar(stat = "identity", position = "dodge") + 
@@ -95,9 +96,11 @@ plot2  <- ggplot(sumGraph, aes(genotype, mean, fill = type)) +
   theme(text = element_text(size=20),
         axis.text.x = element_text(angle=0, vjust=1)) +
     ggtitle(GENE)
+print(cbind(plot1, plot2))
 
-print(plot2)
+ggsave(filename= paste(GENE,"Plot2.pdf")) #Print Plot
 }
+
 ```
 
 
