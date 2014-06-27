@@ -60,10 +60,10 @@ genesOfInterest <- levels(genes)
 The loop:
 
 ```{r, tidy = FALSE}
-for(GENE in genesOfInterest[11:20]) {
+for(GENE in genesOfInterest) {
  
-  if(length(grep(GENE, countData$gene)) < 1){
-    next;
+  if(length(grep(GENE, countData$gene)) < 1){ #this is just making sure that the curated
+    next; 
     }
       
   geneData <- subset(countData, grepl(GENE, countData$gene))
@@ -85,7 +85,7 @@ for(GENE in genesOfInterest[11:20]) {
           axis.text.x = element_text(angle=90, vjust=1)) + 
     ggtitle(GENE)
  
- ggsave(filename= paste(GENE,"Plot1.pdf")) #Print Plot
+ ggsave(filename= paste("../../../../../../../Volumes/TimeMachineBackups/leafGenePlots/", GENE, "Plot1.pdf", sep= "")) #Print Plot
         
   #Plot 2
 plot2  <- ggplot(sumGraph, aes(genotype, mean, fill = type)) + 
@@ -98,7 +98,7 @@ plot2  <- ggplot(sumGraph, aes(genotype, mean, fill = type)) +
     ggtitle(GENE)
 print(cbind(plot1, plot2))
 
-ggsave(filename= paste(GENE,"Plot2.pdf")) #Print Plot
+ ggsave(filename= paste("../../../../../../../Volumes/TimeMachineBackups/leafGenePlots/", GENE, "Plot2.pdf", sep= ""))
 }
 
 ```
