@@ -57,7 +57,7 @@ sample2
 Read in raw count data per gene.
 
 ```{r, results='hide'}
-counts <- read.delim("../requisiteData/sam2countsResults.tsv",row.names=1)
+counts <- read.delim("../../data/sam2countsResults.tsv",row.names=1)
 
 #check the file
 head(counts)
@@ -136,9 +136,9 @@ For this we need to add some annotation.
 Essentially we are merging two annotations files to 1.) only sig genes 2.) all genes
 ```{r}
 
-annotation1<- read.delim("../requisiteData/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
+annotation1<- read.delim("../../data/ITAG2.3_all_Arabidopsis_ITAG_annotations.tsv", header=FALSE)  #Changed to the SGN human readable annotation
 colnames(annotation1) <- c("ITAG", "SGN_annotation")
-annotation2<- read.delim ("../requisiteData/ITAG2.3_all_Arabidopsis_annotated.tsv")
+annotation2<- read.delim ("../../data/ITAG2.3_all_Arabidopsis_annotated.tsv")
 annotation <- merge(annotation1,annotation2, by = "ITAG")
 head(annotation)
 
