@@ -1,0 +1,192 @@
+#Looking and visualizing individual genes: PIN1
+date: June 25, 2014
+
+The goal of this report is to look at PIN1 genes in the LCM data.
+
+```{r, eval = false}
+library(rmarkdown)
+render("Solyc04g040220.Rmd", "pdf_document")
+```
+
+#Specify gene of interest
+```{r}
+gene1 <- "Solyc10g078370"
+gene2 <- "Solyc10g080880"
+gene3 <- "Solyc03g118740"
+```
+
+```{r}
+library(ggplot2)
+library(plyr)
+library(reshape2)
+library(RColorBrewer)
+```
+
+```{r}
+countData <- read.csv("../data/normalized_read_count.csv")
+```
+
+Set up the dataframe for analysis and visualization
+```{r}
+head(countData)
+
+#Melt Data
+countData <- melt(countData)
+head(countData)
+colnames(countData) <- c("gene", "sample", "count")
+head(countData)
+
+
+#set genotype
+
+countData$genotype <- ifelse(grepl("wt", countData$sample, ignore.case = T), "wt", 
+         ifelse(grepl("tf2", countData$sample, ignore.case = T), "tf2", "unknown"))
+
+#countData$genotype <- if(grepl("wt", countData$sample)) {
+#  "wt"
+#  } else {
+    "tf2"
+#  }
+
+#set type
+
+countData$tissue <- ifelse(grepl("other", countData$sample, ignore.case = T), "other", 
+         ifelse(grepl("mbr", countData$sample, ignore.case = T), "mbr", "unknown"))
+
+head(countData)
+
+#Set Region
+countData$region <- ifelse(grepl("a", countData$sample, ignore.case = T), "A", 
+         ifelse(grepl("c", countData$sample, ignore.case = T), "C", "B"))
+```
+
+##Plot Data
+Subsetting for genes of interest.  This is specified at the start of the script. 
+```{r}
+gene1Data <- subset(countData, grepl(gene1, countData$gene))
+gene2Data <- subset(countData, grepl(gene2, countData$gene))
+gene3Data <- subset(countData, grepl(gene3, countData$gene))
+
+graphData <- rbind(gene1Data, gene2Data, gene3Data)
+graphData$sample2  <- paste(graphData$region, graphData$tissue, sep= "")
+```
+
+##Summarize Data
+
+```{r}
+sumGraph <- ddply(graphData, c("gene", "sample2", "genotype"), summarise,
+               N    = length(count),
+               mean = mean(count),
+               sd   = sd(count),
+               se   = sd / sqrt(N) )
+```
+
+##Plot 1 
+This organizing the data to look at differences between genotype.
+```{r}
+ggplot(sumGraph, aes(sample2, mean, fill = genotype)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  facet_grid(.~gene) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1)) 
+```
+
+##Plot 2
+This organizing the data to look at differences per region. 
+```{r}
+ggplot(sumGraph, aes(gene, mean, fill = sample2)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  facet_grid(.~genotype) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=0, vjust=1)) 
+```
+
+#All PIN genes
+
+```{r}
+head(countData)
+dim(countData)
+names(countData)
+
+countData$gene <- gsub("^(.*)[.].*", "\\1", countData$gene)
+countData$gene <- gsub("^(.*)[.].*", "\\1", countData$gene)
+
+grep("Solyc10g078370", countData$gene)
+
+allPINs <- subset(countData, gene %in% c("Solyc10g078370", "Solyc10g080880", "Solyc03g118740", "Solyc05g008060", "Solyc07g006900", "Solyc04g007690", "Solyc06g059730", "Solyc04g056620", "Solyc02g087660", "Solyc01g068410"))
+
+allPINs$sample2  <- paste(allPINs$region, allPINs$tissue, sep= "")
+head(allPINs)
+sumPINGraph <- ddply(allPINs, c("gene", "sample2", "genotype", "tissue", "region"), summarise,
+               N    = length(count),
+               mean = mean(count),
+               sd   = sd(count),
+               se   = sd / sqrt(N) )
+
+head(sumPINGraph)
+```
+
+```{r}
+
+head(sumPINGraph)
+
+ggplot(sumPINGraph, aes(gene, mean, fill = sample2)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1, face="bold", size=12),
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        strip.text.x = element_text(size = 20)) +
+  facet_grid(region~genotype)
+```
+
+WT only.
+```{r}
+
+head(sumPINGraph)
+
+WT_heat <- subset(sumPINGraph, genotype == "wt")
+WT_heat <- WT_heat[,-c(3:6,8,9)]
+head(WT_heat)
+
+colnames(WT_heat)[2] <- "region"
+
+longWT_heat <- melt(WT_heat)
+head(longWT_heat)
+longWT_heat<- longWT_heat[,-3]
+head(longWT_heat)
+
+longWT_heat$gene <- factor(longWT_heat$gene, names(sort(with(longWT_heat, by(value, gene, mean)))))
+
+#Visualization
+myPalette <- colorRampPalette((brewer.pal(9, "Blues")), space="Lab")
+
+ggplot(longWT_heat, aes(y = region, x = gene, fill = value)) + 
+  geom_tile() +
+  scale_fill_gradientn(colours = myPalette(50)) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_equal() +
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1, face="bold", size=12),
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        strip.text.x = element_text(size = 20))
+```
+
+

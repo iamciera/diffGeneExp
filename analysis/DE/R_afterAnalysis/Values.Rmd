@@ -1,0 +1,157 @@
+#DE 
+
+The purpose of this is to visualize the apparent difference in the number of upregulated genes between the longitudinal axis. 
+
+The first step is to upload all the results of all the DE
+
+
+```{r}
+library(plyr)
+
+
+#The first step is to get a list of the file names in the directory you are interested in. 
+filenames <- list.files("onlySig/", pattern="*.txt", full.names=FALSE)
+
+
+#This opens all the files and creates a dataframe named after the filename
+for (i in seq_along(filenames)) {
+    assign(filenames[i], read.delim(paste("onlySig//", filenames[i], sep = "")))  
+}
+
+
+#This all the dataframes into a list.  basically you have a list of dataframes.
+mydata <- list()
+for (i in seq_along(filenames)) {
+      mydata[[i]] <- read.delim(paste("onlySig//", file = filenames[i], sep = ""))
+}
+
+#Now I am looping each dataframe and making a column called RNAseq, which contains the name of the file.  I used the original filenames list to loop through. 
+
+for( i in seq_along(mydata)){
+
+  mydata[[i]]$RNAseq <- rep(filenames[i],nrow(mydata[[i]]))
+
+}
+
+#Tests
+head(filenames[1])#Check
+head(mydata[[1]]) 
+
+head(filenames[2])#Check
+head(mydata[[2]]) 
+```
+ 
+Now that I have the list of list with a new column name, I can merge them all together.
+
+```{r}
+singleDF <- ldply(mydata, data.frame)
+```
+
+Alright now that I have one nice and neat data frame of my RNAseq results I can maybe begin to summarize so that I can finally visualize.  
+
+###Things to do to data and questions to answer:
+[ ] how many upregulated genes vs downregulated genes. 
+[ ] make a table
+[ ] use the RNAseq tab to categorize your results
+[x] get rid of all those columns you do not need
+
+```{r}
+# get rid of all those columns you do not need
+singleDF$RNAseq <- gsub("_DE_sig.txt", "", singleDF$RNAseq)
+
+#keep only what you need
+names(singleDF)
+smallSingle <- singleDF[, c(1:5,15)] 
+head(smallSingle)
+
+#ggplot options
+
+ggOptions = list(theme_bw() +
+    theme(axis.title.x = element_text(face="bold", size=30), 
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16, hjust = 1, angle = 60),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        legend.text = element_text(size=20),
+        strip.text.x = element_text(size = 20)) 
+   
+#Just exploring
+ggplot(smallSingle, aes(RNAseq, logFC)) + 
+  geom_bar(stat = "identity") +
+  ggOptions
+
+```
+
+```{r}
+#Upregulated vs Downregulated 
+head(smallSingle)
+summarySingle <- data.frame()
+
+RNAseqNames <- unique(smallSingle$RNAseq)
+
+
+#Basically I need to make a loop that extracts how many upregualted genes vs how many down regulated genes.  I need to populate a dataframe that has rnaSeq, #upregulated, #downregulated.
+
+
+head(smallSingle)
+
+downRegulated <- vector('numeric')
+for (i in 1:24){
+ downRegulated[i] <- nrow(subset(smallSingle, RNAseq == RNAseqNames[i] & logFC < 0))
+}
+
+upRegulated <- vector('numeric')
+for (i in 1:24){
+ upRegulated[i] <- nrow(subset(smallSingle, RNAseq == RNAseqNames[i] & logFC > 0))
+}
+
+results <- melt(data.frame(RNAseqNames, upRegulated, downRegulated))
+colnames(results) <- c("DE", "regulated","value")
+
+
+ggplot(results, aes(DE, value, fill = regulated)) + 
+  geom_bar(stat = "identity") + 
+ scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
+  ggOptions
+```
+Although this is a nice way of looking at things, not really. I want to make a heat map and seperate each of the experiments.
+
+```{r}
+RNAseqNames
+experiments <- c("4", "2", "2", "5","2","2","5","4","2","5",
+                 "2","5","4","5","5", "3", "1", "1", "1","1",
+                 "3", "1", "1", "3")
+
+melt(experiments)
+results2 <- cbind(results, experiments)
+head(results2)
+
+ex1 <- subset(results2, experiments == "1")
+ex2 <- subset(results2, experiments == "2")
+ex3 <- subset(results2, experiments == "3")
+ex4 <- subset(results2, experiments == "4")
+ex5 <- subset(results2, experiments == "5")
+
+ggplot(ex2, aes(DE, value, fill = regulated)) + 
+  geom_bar(stat = "identity") + 
+ scale_fill_manual(values=c("#CC6666", "#9999CC", "#66CC99")) +
+  ggOptions 
+```
+
+Now to visualize with the ratio.
+
+```{r}
+head(results2)
+results3 <- cast(results2, DE ~ regulated )
+results3 <- cbind(results3, experiments)
+results3$ratio <- results3$upRegulated / results3$downRegulated
+head(results3)
+
+ex1 <- subset(results3, experiments == "1")
+ex2 <- subset(results3, experiments == "2")
+ex3 <- subset(results3, experiments == "3") ****
+ex4 <- subset(results3, experiments == "4")
+ex5 <- subset(results3, experiments == "5")
+
+ggplot(ex5, aes(DE, ratio)) + geom_bar(stat = "identity") + ggOptions
+```

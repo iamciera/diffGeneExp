@@ -1,0 +1,276 @@
+#Looking and visualizing individual genes: PIN1
+date: June 25, 2014
+
+The goal of this report is to look at PIN1 genes in the LCM data.
+
+```{r, eval = false}
+library(rmarkdown)
+
+```
+#Specify gene of interest
+```{r}
+gene1 <- "Solyc03g115900"
+gene2 <- "Solyc06g069730"
+```
+
+```{r}
+library(reshape2)
+library(ggplot2)
+library(plyr)
+library(RColorBrewer)
+```
+
+```{r}
+countData <- read.csv("../data/normalized_read_count.csv")
+```
+
+Set up the dataframe for analysis and visualization
+```{r}
+head(countData)
+
+#Melt Data
+countData <- melt(countData)
+head(countData)
+colnames(countData) <- c("gene", "sample", "count")
+head(countData)
+
+
+#set genotype
+
+countData$genotype <- ifelse(grepl("wt", countData$sample, ignore.case = T), "wt", 
+         ifelse(grepl("tf2", countData$sample, ignore.case = T), "tf2", "unknown"))
+
+#set type
+
+countData$tissue <- ifelse(grepl("other", countData$sample, ignore.case = T), "other", 
+         ifelse(grepl("mbr", countData$sample, ignore.case = T), "mbr", "unknown"))
+
+head(countData)
+
+#Set Region
+countData$region <- ifelse(grepl("a", countData$sample, ignore.case = T), "A", 
+         ifelse(grepl("c", countData$sample, ignore.case = T), "C", "B"))
+```
+
+##Plot Data
+Subsetting for genes of interest.  This is specified at the start of the script. 
+```{r}
+gene1Data <- subset(countData, grepl(gene1, countData$gene))
+gene2Data <- subset(countData, grepl(gene2, countData$gene))
+graphData <- rbind(gene1Data, gene2Data)
+graphData$sample2  <- paste(graphData$region, graphData$tissue, sep= "")
+```
+
+##Summarize Data
+
+```{r}
+sumGraph <- ddply(graphData, c("gene", "sample2", "genotype"), summarise,
+               N    = length(count),
+               mean = mean(count),
+               sd   = sd(count),
+               se   = sd / sqrt(N) )
+```
+
+##Plot 1 
+This organizing the data to look at differences between genotype.
+```{r}
+ggplot(sumGraph, aes(sample2, mean, fill = genotype)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  facet_grid(.~gene) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1)) 
+```
+
+
+##Plot 2
+This organizing the data to look at differences per region. 
+```{r}
+ggplot(sumGraph, aes(gene, mean, fill = sample2)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  facet_grid(.~genotype) +
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=0, vjust=1)) 
+```
+
+##Only Wildtype
+
+This organizing the data to look at differences per region. 
+
+```{r}
+wildtype <- subset(sumGraph, genotype == "wt")
+
+ggplot(wildtype, aes(gene, mean, fill = sample2)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=0, vjust=1)) 
+
+```
+
+##Only Wildtype
+
+This organizing the data to look at differences per region. 
+
+```{r}
+wildtype <- subset(sumGraph, genotype == "wt" & gene == "Solyc06g069730.2.1")
+
+ggplot(wildtype, aes(gene, mean, fill = sample2)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=0, vjust=1, face="bold", size=30),
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        legend.position ="none",
+        strip.text.x = element_text(size = 20)
+        )
+        
+```
+
+####Part two
+
+Sequences producing significant alignments with Arabidopsis CAB 1 : AT1G29930.1
+
+Solyc02g071010.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	323	1e-87
+Solyc02g070980.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	307	7e-83
+Solyc03g005770.1.1 Chlorophyll a-b binding protein 3C-like (AHRD V1 **** Q2X...	301	5e-81
+Solyc02g070950.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	293	1e-78
+Solyc02g070990.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	291	4e-78
+Solyc02g070940.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	291	4e-78
+Solyc03g005760.1.1 Chlorophyll a-b binding protein 3C-like (AHRD V1 **** Q2X...	287	7e-77
+Solyc02g070970.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	283	1e-75
+Solyc02g071030.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41422_SOLT...	268	6e-71
+Solyc02g071020.2.1 Unknown Protein (AHRD V1)	268	6e-71
+Solyc03g005780.1.1 Chlorophyll a-b binding protein 3C-like (AHRD V1 **** Q2X...	264	1e-69
+Solyc02g071000.1.1 Chlorophyll a/b binding protein (AHRD V1 **** Q41425_SOLT...	260	2e-68
+Solyc12g006140.1.1 Cab-5 gene encoding chlorophyll a/b-binding protein cab5a	113	2e-24
+Solyc07g063600.2.1 Chlorophyll a-b binding protein 13, chloroplastic (AHRD V...	91.7	8e-18
+Solyc03g005790.2.1 Chlorophyll a/b-binding protein (AHRD V1 ***- Q41234_PINT...	87.7	1e-16
+Solyc07g047850.2.1 Chlorophyll a-b binding protein 4, chloroplastic (AHRD V1...	81.8	8e-15
+Solyc12g011450.1.1 Chlorophyll a-b binding protein 13, chloroplastic (AHRD V...	73.8	2e-12
+
+#Specify gene of interest
+```{r}
+
+allCABs <- subset(countData, gene %in% c('Solyc02g071010.1.1','Solyc02g070980.1.1','Solyc03g005770.1.1','Solyc02g070950.1.1','Solyc02g070990.1.1','Solyc02g070940.1.1','Solyc03g005760.1.1','Solyc02g070970.1.1','Solyc02g071030.1.1','Solyc02g071020.2.1','Solyc03g005780.1.1','Solyc02g071000.1.1','Solyc12g006140.1.1','Solyc07g063600.2.1','Solyc03g005790.2.1','Solyc07g047850.2.1','Solyc12g011450.1.1'))
+
+allCABs$sample2  <- paste(allCABs$region, allCABs$tissue, sep= "")
+head(allCABs)
+sumCabGraph <- ddply(allCABs, c("gene", "sample2", "genotype", "tissue", "region"), summarise,
+               N    = length(count),
+               mean = mean(count),
+               sd   = sd(count),
+               se   = sd / sqrt(N) )
+
+head(sumCabGraph)
+
+ggplot(sumCabGraph, aes(gene, mean, fill = sample2)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se),
+                  width=.2,                    # Width of the error bars
+                  position=position_dodge(.9)) +
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1, face="bold", size=12),
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        strip.text.x = element_text(size = 20)) +
+  facet_grid(region~genotype)
+```
+
+##Heatmap WT only 
+
+```{r}
+
+
+head(sumCabGraph)
+WT_heat <- subset(sumCabGraph, genotype == "wt")
+WT_heat <- WT_heat[,-c(3:6,8,9)]
+head(WT_heat)
+
+colnames(WT_heat)[2] <- "region"
+
+longWT_heat <- melt(WT_heat)
+head(longWT_heat)
+longWT_heat<- longWT_heat[,-3]
+head(longWT_heat)
+
+longWT_heat$gene <- factor(longWT_heat$gene, names(sort(with(longWT_heat, by(value, gene, mean)))))
+
+#Visualization
+myPalette <- colorRampPalette((brewer.pal(9, "Blues")), space="Lab")
+
+ggplot(longWT_heat, aes(y = region, x = gene, fill = value)) + 
+  geom_tile() +
+  scale_fill_gradientn(colours = myPalette(50)) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_equal() +
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1, face="bold", size=12),
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        strip.text.x = element_text(size = 20))
+```
+
+##Now with *tf2*
+
+
+```{r}
+
+head(sumCabGraph)
+tf2_heat <- subset(sumCabGraph, genotype == "tf2")
+tf2_heat <- tf2_heat[,-c(3:6,8,9)]
+head(tf2_heat)
+
+colnames(tf2_heat)[2] <- "region"
+
+tf2_heat$ <- t(scale(t(tf2_heat[,3])))
+
+longtf2_heat <- melt(tf2_heat)
+head(longtf2_heat)
+longtf2_heat<- longtf2_heat[,-3]
+head(longtf2_heat)
+
+longtf2_heat$gene <- factor(longtf2_heat$gene, names(sort(with(longtf2_heat, by(value, gene, mean)))))
+
+#Visualization
+myPalette <- colorRampPalette((brewer.pal(9, "Blues")), space="Lab")
+
+ggplot(longtf2_heat, aes(y = region, x = gene, fill = value)) + 
+  geom_tile() +
+  scale_fill_gradientn(colours = myPalette(50)) +
+  scale_x_discrete(expand = c(0, 0), limits = rev(levels(longtf2_heat$region))) +
+  scale_y_discrete(expand = c(0, 0)) +
+  coord_equal() +
+  theme_bw() +
+  theme(text = element_text(size=20),
+        axis.text.x = element_text(angle=90, vjust=1, face="bold", size=12),
+        axis.title.y = element_text(face="bold", size=30), 
+        axis.text.x  = element_text(size=16),
+        axis.text.y  = element_text(size=16),
+        legend.title = element_text(size=30),
+        strip.text.x = element_text(size = 20))
+```
+
+Results of *tf2* are not as straight forward. 
+
+scale_x_discrete(limits = rev(levels(PlantGrowth$group)))

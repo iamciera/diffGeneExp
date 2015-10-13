@@ -110,7 +110,7 @@ finalList <- subset(finalList, log2Mean > 0 ) #fix that problem, but must go bac
 finalList <- within(finalList, lineGroup <- paste(genotype, gene,sep='.'))
 head(finalList)
 
-write.table(finalList, file = "../../data/allGeneList.csv", sep = ",")
+write.table(finalList, file = "../../data/allGeneListCurated.csv", sep = ",")
 ```
 
 #Visualization

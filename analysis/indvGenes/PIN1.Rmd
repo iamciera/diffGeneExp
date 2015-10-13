@@ -41,12 +41,6 @@ head(countData)
 countData$genotype <- ifelse(grepl("wt", countData$sample, ignore.case = T), "wt", 
          ifelse(grepl("tf2", countData$sample, ignore.case = T), "tf2", "unknown"))
 
-#countData$genotype <- if(grepl("wt", countData$sample)) {
-#  "wt"
-#  } else {
-    "tf2"
-#  }
-
 #set type
 
 countData$tissue <- ifelse(grepl("other", countData$sample, ignore.case = T), "other", 
